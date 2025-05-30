@@ -94,6 +94,196 @@ func BadDouble(v any) any {
 }
 ```
 
+# 泛型和Java的异同
+
+#### 核心区别概览
+
+| 特性         | Java 泛型                    | Go 泛型                      |
+| ------------ | ---------------------------- | ---------------------------- |
+| 实现方式     | 类型擦除（运行时无类型信息） | 具体类型实例化（编译时生成） |
+| 类型约束     | 继承关系（extends）          | 接口约束（联合类型）         |
+| 基本类型支持 | 需要包装类（Integer/Double） | 直接支持基本类型             |
+| 类型推导     | 有限支持                     | 完整类型推导                 |
+| 运行时性能   | 有装箱拆箱开销               | 零运行时开销                 |
+
+---
+
+#### Go 泛型核心特性
+
+### 1. 类型参数声明
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-go"><span class="token">func</span><span> Max</span><span class="token">[</span><span>T Number</span><span class="token">]</span><span class="token">(</span><span>a</span><span class="token">,</span><span> b T</span><span class="token">)</span><span> T </span><span class="token">{</span><span>
+</span><span></span><span class="token">if</span><span> a </span><span class="token">></span><span> b </span><span class="token">{</span><span>
+</span><span></span><span class="token">return</span><span> a
+</span><span></span><span class="token">}</span><span>
+</span><span></span><span class="token">return</span><span> b
+</span><span></span><span class="token">}</span></code></div></div></pre>
+
+* 使用方括号声明类型参数 `[T Number]`
+* 类型参数可指定约束（如 [Number](javascript:void(0))）
+* 调用示例：
+
+  <pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-go"><span>fmt</span><span class="token">.</span><span class="token">Println</span><span class="token">(</span><span>Max</span><span class="token">[</span><span class="token">int</span><span class="token">]</span><span class="token">(</span><span class="token">3</span><span class="token">,</span><span></span><span class="token">5</span><span class="token">)</span><span class="token">)</span><span></span><span class="token">// 显式指定类型</span><span>
+  </span><span>fmt</span><span class="token">.</span><span class="token">Println</span><span class="token">(</span><span class="token">Max</span><span class="token">(</span><span class="token">3.14</span><span class="token">,</span><span></span><span class="token">2.71</span><span class="token">)</span><span class="token">)</span><span></span><span class="token">// 类型推导</span></code></div></div></pre>
+
+### 2. 类型约束定义
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-go"><span class="token">type</span><span> Number </span><span class="token">interface</span><span></span><span class="token">{</span><span>
+</span><span>	Integer </span><span class="token">|</span><span> Float
+</span><span></span><span class="token">}</span></code></div></div></pre>
+
+* 使用 `|` 运算符组合类型
+* 可组合基础类型和接口
+* 示例：
+
+  <pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-go"><span class="token">func</span><span> Sum</span><span class="token">[</span><span>T Integer</span><span class="token">]</span><span class="token">(</span><span>nums </span><span class="token">...</span><span>T</span><span class="token">)</span><span> T </span><span class="token">{</span><span>
+  </span><span></span><span class="token">var</span><span> total T
+  </span><span></span><span class="token">for</span><span></span><span class="token">_</span><span class="token">,</span><span> n </span><span class="token">:=</span><span></span><span class="token">range</span><span> nums </span><span class="token">{</span><span>
+  </span><span>        total </span><span class="token">+=</span><span> n
+  </span><span></span><span class="token">}</span><span>
+  </span><span></span><span class="token">return</span><span> total
+  </span><span></span><span class="token">}</span></code></div></div></pre>
+
+### 3. 类型实例化机制
+
+Go 编译器会为每个实际类型生成独立实现：
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-go"><span class="token">// 实际生成两个函数</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">Max_int</span><span class="token">(</span><span>a</span><span class="token">,</span><span> b </span><span class="token">int</span><span class="token">)</span><span></span><span class="token">int</span><span></span><span class="token">{</span><span></span><span class="token">...</span><span></span><span class="token">}</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">Max_float64</span><span class="token">(</span><span>a</span><span class="token">,</span><span> b </span><span class="token">float64</span><span class="token">)</span><span></span><span class="token">float64</span><span></span><span class="token">{</span><span></span><span class="token">...</span><span></span><span class="token">}</span></code></div></div></pre>
+
+* 与Java的类型擦除本质不同
+* 避免了反射调用开销
+* 保持数值类型原始性能
+
+---
+
+## 与Java泛型对比示例
+
+### 场景：通用容器实现
+
+**Java写法**
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">java</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-java"><span class="token">public</span><span></span><span class="token">class</span><span></span><span class="token">Box</span><span class="token generics"><</span><span class="token generics">T</span><span class="token generics">></span><span></span><span class="token">{</span><span>
+</span><span></span><span class="token">private</span><span></span><span class="token">T</span><span> value</span><span class="token">;</span><span>
+</span>  
+<span></span><span class="token">public</span><span></span><span class="token">void</span><span></span><span class="token">set</span><span class="token">(</span><span class="token">T</span><span> value</span><span class="token">)</span><span></span><span class="token">{</span><span></span><span class="token">this</span><span class="token">.</span><span>value </span><span class="token">=</span><span> value</span><span class="token">;</span><span></span><span class="token">}</span><span>
+</span><span></span><span class="token">public</span><span></span><span class="token">T</span><span></span><span class="token">get</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">{</span><span></span><span class="token">return</span><span> value</span><span class="token">;</span><span></span><span class="token">}</span><span>
+</span><span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">// 使用</span><span>
+</span><span></span><span class="token">Box</span><span class="token generics"><</span><span class="token generics">Integer</span><span class="token generics">></span><span> box </span><span class="token">=</span><span></span><span class="token">new</span><span></span><span class="token">Box</span><span class="token generics"><</span><span class="token generics">></span><span class="token">(</span><span class="token">)</span><span class="token">;</span><span>
+</span><span>box</span><span class="token">.</span><span class="token">set</span><span class="token">(</span><span class="token">42</span><span class="token">)</span><span class="token">;</span></code></div></div></pre>
+
+**Go写法**
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-go"><span class="token">type</span><span> Box</span><span class="token">[</span><span>T any</span><span class="token">]</span><span></span><span class="token">struct</span><span></span><span class="token">{</span><span>
+</span>    Value T
+<span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">func</span><span></span><span class="token">(</span><span>b </span><span class="token">*</span><span>Box</span><span class="token">[</span><span>T</span><span class="token">]</span><span class="token">)</span><span></span><span class="token">Set</span><span class="token">(</span><span>v T</span><span class="token">)</span><span></span><span class="token">{</span><span> b</span><span class="token">.</span><span>Value </span><span class="token">=</span><span> v </span><span class="token">}</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">(</span><span>b </span><span class="token">*</span><span>Box</span><span class="token">[</span><span>T</span><span class="token">]</span><span class="token">)</span><span></span><span class="token">Get</span><span class="token">(</span><span class="token">)</span><span> T   </span><span class="token">{</span><span></span><span class="token">return</span><span> b</span><span class="token">.</span><span>Value </span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">// 使用</span><span>
+</span><span>box </span><span class="token">:=</span><span></span><span class="token">&</span><span>Box</span><span class="token">[</span><span class="token">int</span><span class="token">]</span><span class="token">{</span><span class="token">}</span><span>
+</span><span>box</span><span class="token">.</span><span class="token">Set</span><span class="token">(</span><span class="token">42</span><span class="token">)</span></code></div></div></pre>
+
+### 关键差异
+
+1. **内存布局**
+   * Java：所有 `Box`实例内部都是 `Object`引用
+   * Go：`Box[int]`直接存储 `int`值，无指针开销
+2. **方法调用**
+   * Java：通过虚方法表动态调度
+   * Go：编译时确定具体实现
+3. **类型检查**
+   * Java：编译时擦除类型，运行时无法验证
+   * Go：编译时严格类型检查
+
+---
+
+## Go 泛型独特优势
+
+### 1. 数值类型约束
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-go"><span class="token">func</span><span> Add</span><span class="token">[</span><span>T Integer</span><span class="token">]</span><span class="token">(</span><span>a</span><span class="token">,</span><span> b T</span><span class="token">)</span><span> T </span><span class="token">{</span><span>
+</span><span></span><span class="token">return</span><span> a </span><span class="token">+</span><span> b
+</span><span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">// 直接支持所有整数类型</span><span>
+</span><span></span><span class="token">Add</span><span class="token">(</span><span class="token">1</span><span class="token">,</span><span></span><span class="token">2</span><span class="token">)</span><span></span><span class="token">// int</span><span>
+</span><span></span><span class="token">Add</span><span class="token">(</span><span class="token">int8</span><span class="token">(</span><span class="token">3</span><span class="token">)</span><span class="token">,</span><span></span><span class="token">4</span><span class="token">)</span><span></span><span class="token">// int8</span></code></div></div></pre>
+
+### 2. 零大小类型优化
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-go"><span class="token">type</span><span> Option</span><span class="token">[</span><span>T any</span><span class="token">]</span><span></span><span class="token">struct</span><span></span><span class="token">{</span><span>
+</span>    value T
+<span>    valid </span><span class="token">bool</span><span>
+</span><span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">// 当T是空结构体时自动优化内存占用</span><span>
+</span><span></span><span class="token">var</span><span> opt Option</span><span class="token">[</span><span class="token">struct</span><span class="token">{</span><span class="token">}</span><span class="token">]</span><span></span></code></div></div></pre>
+
+### 3. 接口组合约束
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-go"><span class="token">type</span><span> Stringer </span><span class="token">interface</span><span></span><span class="token">{</span><span>
+</span><span></span><span class="token">String</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">type</span><span> Printable</span><span class="token">[</span><span>T Stringer</span><span class="token">]</span><span></span><span class="token">struct</span><span></span><span class="token">{</span><span>
+</span>    Value T
+<span></span><span class="token">}</span></code></div></div></pre>
+
+---
+
+## 使用建议
+
+### 适用场景
+
+1. 数据结构通用化（列表、栈、队列）
+2. 数值计算（数学库、指标计算）
+3. 错误处理包装
+4. 配置解析器
+
+### 避免滥用
+
+1. 不要过度抽象（保持代码可读性）
+2. 谨慎使用复杂约束
+3. 注意编译时间增长（每个实例生成单独代码）
+
+### 性能对比
+
+| 操作       | Go 泛型  | Java 泛型  |
+| ---------- | -------- | ---------- |
+| 整数加法   | 0ns/op   | 15ns/op    |
+| 结构体复制 | 100%原生 | 70%原生    |
+| 方法调用   | 无开销   | 虚调用开销 |
+
+---
+
+## 对应到当前项目
+
+你的 [helper.go](javascript:void(0)) 文件中定义的约束类型：
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-go"><span class="token">type</span><span> Integer </span><span class="token">interface</span><span></span><span class="token">{</span><span></span><span class="token">/*...*/</span><span></span><span class="token">}</span><span></span><span class="token">// 整数约束</span><span>
+</span><span></span><span class="token">type</span><span> Float </span><span class="token">interface</span><span></span><span class="token">{</span><span></span><span class="token">/*...*/</span><span></span><span class="token">}</span><span></span><span class="token">// 浮点约束</span><span>
+</span><span></span><span class="token">type</span><span> Number </span><span class="token">interface</span><span></span><span class="token">{</span><span></span><span class="token">/*...*/</span><span></span><span class="token">}</span><span></span><span class="token">// 数值总约束</span></code></div></div></pre>
+
+这些可以用于：
+
+1. 编写通用指标计算函数
+
+   <pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-go"><span class="token">func</span><span> CalculateSMA</span><span class="token">[</span><span>T Number</span><span class="token">]</span><span class="token">(</span><span>period </span><span class="token">int</span><span class="token">,</span><span> values </span><span class="token">[</span><span class="token">]</span><span>T</span><span class="token">)</span><span></span><span class="token">[</span><span class="token">]</span><span>T </span><span class="token">{</span><span></span><span class="token">/*...*/</span><span></span><span class="token">}</span></code></div></div></pre>
+2. 构建类型安全的管道
+
+   <pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="2f128435-6e8e-497c-99fa-1d1f5b4c2712" tasktype="FREE_INPUT"><code class="language-go"><span class="token">func</span><span> Filter</span><span class="token">[</span><span>T Integer</span><span class="token">]</span><span class="token">(</span><span>data </span><span class="token">[</span><span class="token">]</span><span>T</span><span class="token">,</span><span> pred </span><span class="token">func</span><span class="token">(</span><span>T</span><span class="token">)</span><span></span><span class="token">bool</span><span class="token">)</span><span></span><span class="token">[</span><span class="token">]</span><span>T </span><span class="token">{</span><span></span><span class="token">/*...*/</span><span></span><span class="token">}</span></code></div></div></pre>
+3. 创建数值转换器
+
+```go
+func Convert[T Number, U Integer](values []T) ([]U, error) { /*...*/ }
+```
+
+
 # 数组和切片的区别
 
 在 Go 语言中，**数组（Array）** 和 **切片（Slice）** 是两种不同的数据结构，它们的核心区别如下：
@@ -594,3 +784,20 @@ var recvOnly <-chan int = c  // 双向转只读
 - **单向通道的限制仅作用于当前变量的编译期类型**。
 - **通道本身是双向的**，其他协程可能以不同方向访问同一通道。
 - **设计建议**：在函数参数或接口中使用单向通道，明确通信意图，提升代码可维护性。
+
+# 并发实践
+
+### 通道关闭原则
+
+1. **发送方关闭通道** ：保证接收方不会收到额外数据
+2. **多发送方时需协调** ：使用sync.Once或关闭标志
+3. **检查通道状态** ：使用comma-ok判断通道是否关闭
+
+### defer 使用规范
+
+1. **资源释放首选defer** ：文件、锁、通道等
+2. **尽早声明** ：在获取资源后立即设置defer
+3. **避免在循环内defer** ：可能导致资源堆积
+
+
+
