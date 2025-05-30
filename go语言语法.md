@@ -801,3 +801,276 @@ var recvOnly <-chan int = c  // 双向转只读
 
 
 
+接口组合的本质
+
+在 Go 语言中，**接口组合**是通过将一个接口直接嵌入到另一个接口或结构体中，实现方法集的继承和扩展。这种设计模式不是简单的类型嵌入，而是方法集合的传递。
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">// 示例：接口组合</span><span>
+</span><span></span><span class="token">type</span><span> Animal </span><span class="token">interface</span><span></span><span class="token">{</span><span>
+</span><span></span><span class="token">Move</span><span class="token">(</span><span class="token">)</span><span>
+</span><span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">type</span><span> Eater </span><span class="token">interface</span><span></span><span class="token">{</span><span>
+</span><span></span><span class="token">Eat</span><span class="token">(</span><span class="token">)</span><span>
+</span><span>    Animal </span><span class="token">// 接口组合</span><span>
+</span><span></span><span class="token">}</span></code></div></div></pre>
+
+此时 `Eater` 接口自动获得 `Move()` 方法，其完整方法集为：
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">interface</span><span></span><span class="token">{</span><span>
+</span><span></span><span class="token">Eat</span><span class="token">(</span><span class="token">)</span><span>
+</span><span></span><span class="token">Move</span><span class="token">(</span><span class="token">)</span><span>
+</span><span></span><span class="token">}</span></code></div></div></pre>
+
+---
+
+## 二、代码中的接口组合解析
+
+### 1. 原始代码片段
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">type</span><span> annotationReportColumn </span><span class="token">struct</span><span></span><span class="token">{</span><span>
+</span><span>    ReportColumn </span><span class="token">// 接口组合</span><span>
+</span><span>    values </span><span class="token"><-</span><span class="token">chan</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">}</span></code></div></div></pre>
+
+### 2. 接口定义回顾
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">type</span><span> ReportColumn </span><span class="token">interface</span><span></span><span class="token">{</span><span>
+</span><span></span><span class="token">Name</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">Type</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">Role</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">Value</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">}</span></code></div></div></pre>
+
+### 3. 组合效果分析
+
+通过匿名嵌入 [ReportColumn](javascript:void(0)) 接口，[annotationReportColumn](javascript:void(0)) 结构体自动获得以下能力：
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">// 实际获得的方法集</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">(</span><span>a </span><span class="token">*</span><span>annotationReportColumn</span><span class="token">)</span><span></span><span class="token">Name</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">(</span><span>a </span><span class="token">*</span><span>annotationReportColumn</span><span class="token">)</span><span></span><span class="token">Type</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">(</span><span>a </span><span class="token">*</span><span>annotationReportColumn</span><span class="token">)</span><span></span><span class="token">Role</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">(</span><span>a </span><span class="token">*</span><span>annotationReportColumn</span><span class="token">)</span><span></span><span class="token">Value</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span></code></div></div></pre>
+
+---
+
+## 三、接口组合的工作机制
+
+### 1. 方法继承规则
+
+当结构体嵌入接口时：
+
+* 自动继承接口的所有方法签名
+* 可选择性实现这些方法
+* 未实现的方法会在运行时引发 panic
+
+### 2. 本例中的实现情况
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">// 结构体已实现的方法：</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">(</span><span class="token">*</span><span>annotationReportColumn</span><span class="token">)</span><span></span><span class="token">Name</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">(</span><span class="token">*</span><span>annotationReportColumn</span><span class="token">)</span><span></span><span class="token">Type</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">(</span><span class="token">*</span><span>annotationReportColumn</span><span class="token">)</span><span></span><span class="token">Role</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">(</span><span>c </span><span class="token">*</span><span>annotationReportColumn</span><span class="token">)</span><span></span><span class="token">Value</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span>
+</span>
+<span></span><span class="token">// 继承但未使用的接口方法：</span><span>
+</span><span></span><span class="token">// 无（已全部实现）</span></code></div></div></pre>
+
+### 3. 调用链解析
+
+当调用接口方法时：
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">var</span><span> rc ReportColumn </span><span class="token">=</span><span></span><span class="token">&</span><span>annotationReportColumn</span><span class="token">{</span><span class="token">...</span><span class="token">}</span><span>
+</span><span>rc</span><span class="token">.</span><span class="token">Name</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">// 实际调用的是 *annotationReportColumn.Name()</span></code></div></div></pre>
+
+---
+
+## 四、接口组合 vs 结构体组合
+
+| 特性     | 接口组合     | 结构体组合    |
+| -------- | ------------ | ------------- |
+| 目标     | 方法继承     | 状态继承      |
+| 嵌入内容 | 方法签名     | 方法实现+状态 |
+| 可见性   | 公共方法     | 所有导出字段  |
+| 典型用途 | 定义行为契约 | 共享实现细节  |
+
+### 示例对比
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">// 接口组合（行为导向）</span><span>
+</span><span></span><span class="token">type</span><span> Animal </span><span class="token">interface</span><span></span><span class="token">{</span><span></span><span class="token">Move</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">}</span><span>
+</span><span></span><span class="token">type</span><span> Dog </span><span class="token">struct</span><span></span><span class="token">{</span><span> Animal </span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">// 结构体组合（实现导向）</span><span>
+</span><span></span><span class="token">type</span><span> Engine </span><span class="token">struct</span><span></span><span class="token">{</span><span> Power </span><span class="token">int</span><span></span><span class="token">}</span><span>
+</span><span></span><span class="token">type</span><span> Car </span><span class="token">struct</span><span></span><span class="token">{</span><span> Engine </span><span class="token">}</span></code></div></div></pre>
+
+---
+
+## 五、本案例的设计目的
+
+### 1. 实现接口约束
+
+通过组合 [ReportColumn](javascript:void(0)) 接口：
+
+* 强制要求实现所有必要方法
+* 确保数据列的统一访问方式
+* 支持多种列类型的动态绑定
+
+### 2. 支持多态特性
+
+使 [annotationReportColumn](javascript:void(0)) 可以：
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">var</span><span></span><span class="token">_</span><span> ReportColumn </span><span class="token">=</span><span></span><span class="token">(</span><span class="token">*</span><span>annotationReportColumn</span><span class="token">)</span><span class="token">(</span><span class="token">nil</span><span class="token">)</span><span></span><span class="token">// 编译期接口验证</span></code></div></div></pre>
+
+### 3. 与报告系统的集成
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">// 在 report.go 中的使用</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">(</span><span>r </span><span class="token">*</span><span>Report</span><span class="token">)</span><span></span><span class="token">AddColumn</span><span class="token">(</span><span>column ReportColumn</span><span class="token">)</span><span></span><span class="token">{</span><span>
+</span><span></span><span class="token">// 可以接收任何实现了 ReportColumn 的类型</span><span>
+</span><span></span><span class="token">}</span></code></div></div></pre>
+
+---
+
+## 六、接口组合的优势
+
+### 1. 代码复用
+
+无需重复定义方法签名：
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">// 传统写法需要重复声明</span><span>
+</span><span></span><span class="token">type</span><span> annotationReportColumn </span><span class="token">struct</span><span></span><span class="token">{</span><span>
+</span><span>    values </span><span class="token"><-</span><span class="token">chan</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">func</span><span></span><span class="token">(</span><span>a </span><span class="token">*</span><span>annotationReportColumn</span><span class="token">)</span><span></span><span class="token">Name</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span></span><span class="token">{</span><span></span><span class="token">...</span><span></span><span class="token">}</span><span>
+</span><span></span><span class="token">...</span><span>
+</span>
+<span></span><span class="token">// 使用接口组合后</span><span>
+</span><span></span><span class="token">type</span><span> annotationReportColumn </span><span class="token">struct</span><span></span><span class="token">{</span><span>
+</span><span>    ReportColumn </span><span class="token">// 自动获得所有方法</span><span>
+</span><span>    values </span><span class="token"><-</span><span class="token">chan</span><span></span><span class="token">string</span><span>
+</span><span></span><span class="token">}</span></code></div></div></pre>
+
+### 2. 维护简化
+
+修改接口方法时：
+
+* 只需更新文档注释
+* 编译器自动检查实现完整性
+
+### 3. 架构扩展性
+
+新增方法时：
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">// 修改原始接口</span><span>
+</span><span></span><span class="token">type</span><span> ReportColumn </span><span class="token">interface</span><span></span><span class="token">{</span><span>
+</span><span></span><span class="token">NewMethod</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">// 新增方法</span><span>
+</span><span></span><span class="token">// 原有方法不变...</span><span>
+</span><span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">// 所有组合该接口的结构体：</span><span>
+</span><span></span><span class="token">// 1. 必须实现新方法</span><span>
+</span><span></span><span class="token">// 2. 或保持panic安全</span></code></div></div></pre>
+
+---
+
+## 七、使用注意事项
+
+### 1. 避免命名冲突
+
+当组合多个包含相同方法名的接口时：
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">type</span><span> A </span><span class="token">interface</span><span></span><span class="token">{</span><span></span><span class="token">Method</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">}</span><span>
+</span><span></span><span class="token">type</span><span> B </span><span class="token">interface</span><span></span><span class="token">{</span><span></span><span class="token">Method</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">}</span><span>
+</span><span></span><span class="token">type</span><span> C </span><span class="token">struct</span><span></span><span class="token">{</span><span>
+</span>    A
+    B
+<span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">// 调用时需显式指定</span><span>
+</span><span></span><span class="token">var</span><span> c C
+</span><span>c</span><span class="token">.</span><span>A</span><span class="token">.</span><span class="token">Method</span><span class="token">(</span><span class="token">)</span><span></span></code></div></div></pre>
+
+### 2. 实现完整性
+
+必须实现所有接口方法：
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">type</span><span> Incomplete </span><span class="token">struct</span><span></span><span class="token">{</span><span>
+</span><span>    ReportColumn </span><span class="token">// 只组合</span><span>
+</span><span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">// 运行时调用未实现的方法会 panic</span><span>
+</span><span></span><span class="token">var</span><span> rc ReportColumn </span><span class="token">=</span><span></span><span class="token">&</span><span>Incomplete</span><span class="token">{</span><span class="token">}</span><span>
+</span><span>rc</span><span class="token">.</span><span class="token">Name</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">// panic: not implemented</span></code></div></div></pre>
+
+### 3. 文档维护
+
+组合接口时应同步文档：
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">// 更好的注释方式</span><span>
+</span><span></span><span class="token">type</span><span> annotationReportColumn </span><span class="token">struct</span><span></span><span class="token">{</span><span>
+</span><span>    ReportColumn </span><span class="token">// 实现 ReportColumn 接口方法</span><span>
+</span><span>    values </span><span class="token"><-</span><span class="token">chan</span><span></span><span class="token">string</span><span></span><span class="token">// 存储注解数据的通道</span><span>
+</span><span></span><span class="token">}</span></code></div></div></pre>
+
+---
+
+## 八、典型应用场景
+
+### 1. 插件系统开发
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">type</span><span> Plugin </span><span class="token">interface</span><span></span><span class="token">{</span><span>
+</span><span></span><span class="token">Init</span><span class="token">(</span><span class="token">)</span><span>
+</span><span>    ReportColumn </span><span class="token">// 组合基础接口</span><span>
+</span><span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">type</span><span> MyPlugin </span><span class="token">struct</span><span></span><span class="token">{</span><span>
+</span><span>    ReportColumn </span><span class="token">// 继承方法</span><span>
+</span><span></span><span class="token">}</span></code></div></div></pre>
+
+### 2. 分层架构设计
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">// dao层接口组合</span><span>
+</span><span></span><span class="token">type</span><span> DataProcessor </span><span class="token">interface</span><span></span><span class="token">{</span><span>
+</span><span></span><span class="token">Process</span><span class="token">(</span><span class="token">)</span><span>
+</span><span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">// service层组合</span><span>
+</span><span></span><span class="token">type</span><span> ReportService </span><span class="token">struct</span><span></span><span class="token">{</span><span>
+</span><span>    DataProcessor </span><span class="token">// 组合下层接口</span><span>
+</span><span></span><span class="token">}</span></code></div></div></pre>
+
+### 3. 测试替身构建
+
+<pre><div class="answer-code-wrap"><div class="answer-code-wrap-header"><div class="answer-code-wrap-header-left">go</div><div class="answer-code-wrap-header-right"><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-insert-line1"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-copy-line"></use></svg></span></span><span class="ai-button noBg false selected dark undefined"><span role="img" class="anticon yunxiao-icon undefined"><svg width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" class=""><use xlink:href="#yunxiao-additive-code-file-line"></use></svg></span></span></div></div><div node="[object Object]" class="answer-code-wrap-body" requestid="9630486e-d610-4b57-8cb5-c6768ce67ded" tasktype="FREE_INPUT"><code class="language-go"><span class="token">// 测试用结构体</span><span>
+</span><span></span><span class="token">type</span><span> MockColumn </span><span class="token">struct</span><span></span><span class="token">{</span><span>
+</span><span>    ReportColumn </span><span class="token">// 组合接口</span><span>
+</span><span></span><span class="token">}</span><span>
+</span>
+<span></span><span class="token">// 仅实现需要的方法</span><span>
+</span><span></span><span class="token">func</span><span></span><span class="token">(</span><span>m </span><span class="token">*</span><span>MockColumn</span><span class="token">)</span><span></span><span class="token">Value</span><span class="token">(</span><span class="token">)</span><span></span><span class="token">string</span><span></span><span class="token">{</span><span>
+</span><span></span><span class="token">return</span><span></span><span class="token">"mock_value"</span><span>
+</span><span></span><span class="token">}</span></code></div></div></pre>
+
+---
+
+## 九、总结
+
+### 1. 核心价值
+
+接口组合在本项目中实现了：
+
+* 数据列行为的标准化
+* 多态支持的基础架构
+* 可扩展的设计模式
+
+### 2. 设计启示
+
+* **行为优先** ：通过接口组合定义对象能力
+* **组合优于继承** ：Go 的组合哲学体现
+* **编译期安全保障** ：接口实现检查
+
+### 3. 学习建议
+
+* **实践练习** ：尝试实现一个简单的报告列
+* **源码阅读** ：查看标准库中 `io.Reader` 的组合使用
+* **模式对比** ：理解 Go 组合与传统 OOP 继承的区别
