@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/hellomyheart/go-indicator/helper"
-	"github.com/hellomyheart/go-indicator/trend"
+	"github.com/hellomyheart/go-indicator/indicator/trend"
 )
 
 func TestMacd(t *testing.T) {

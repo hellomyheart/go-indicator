@@ -3,7 +3,7 @@ package trend
 import (
 	"github.com/hellomyheart/go-indicator/asset"
 	"github.com/hellomyheart/go-indicator/helper"
-	"github.com/hellomyheart/go-indicator/momentum"
+	"github.com/hellomyheart/go-indicator/indicator/momentum"
 	"github.com/hellomyheart/go-indicator/strategy"
 )
 

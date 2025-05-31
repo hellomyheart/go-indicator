@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/hellomyheart/go-indicator/helper"
-	"github.com/hellomyheart/go-indicator/trend"
+	"github.com/hellomyheart/go-indicator/indicator/trend"
 )
 
 // Testing against the example at URL:

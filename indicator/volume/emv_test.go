@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/hellomyheart/go-indicator/helper"
-	"github.com/hellomyheart/go-indicator/volume"
+	"github.com/hellomyheart/go-indicator/indicator/volume"
 )
 
 func TestEmv(t *testing.T) {

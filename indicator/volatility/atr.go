@@ -4,7 +4,7 @@ import (
 	"math"
 
 	"github.com/hellomyheart/go-indicator/helper"
-	"github.com/hellomyheart/go-indicator/trend"
+	"github.com/hellomyheart/go-indicator/indicator/trend"
 )
 
 const (

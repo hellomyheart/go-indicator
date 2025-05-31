@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/hellomyheart/go-indicator/helper"
-	"github.com/hellomyheart/go-indicator/momentum"
+	"github.com/hellomyheart/go-indicator/indicator/momentum"
 )
 
 func TestWilliamsR(t *testing.T) {

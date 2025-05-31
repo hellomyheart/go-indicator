@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/hellomyheart/go-indicator/helper"
-	"github.com/hellomyheart/go-indicator/momentum"
+	"github.com/hellomyheart/go-indicator/indicator/momentum"
 )
 
 func TestStochasticOscillator(t *testing.T) {

@@ -19,8 +19,8 @@
 package volatility
 
 import (
+	"github.com/hellomyheart/go-indicator/indicator/trend"
 	"github.com/hellomyheart/go-indicator/strategy"
-	"github.com/hellomyheart/go-indicator/trend"
 	"github.com/hellomyheart/go-indicator/volatility"
 )
 

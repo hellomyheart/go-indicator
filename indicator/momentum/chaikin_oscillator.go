@@ -2,8 +2,8 @@ package momentum
 
 import (
 	"github.com/hellomyheart/go-indicator/helper"
-	"github.com/hellomyheart/go-indicator/trend"
-	"github.com/hellomyheart/go-indicator/volume"
+	"github.com/hellomyheart/go-indicator/indicator/trend"
+	"github.com/hellomyheart/go-indicator/indicator/volume"
 )
 
 const (

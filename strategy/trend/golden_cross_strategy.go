@@ -3,8 +3,8 @@ package trend
 import (
 	"github.com/hellomyheart/go-indicator/asset"
 	"github.com/hellomyheart/go-indicator/helper"
+	"github.com/hellomyheart/go-indicator/indicator/trend"
 	"github.com/hellomyheart/go-indicator/strategy"
-	"github.com/hellomyheart/go-indicator/trend"
 )
 
 const (

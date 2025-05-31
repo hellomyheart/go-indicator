@@ -2,7 +2,7 @@ package volatility
 
 import (
 	"github.com/hellomyheart/go-indicator/helper"
-	"github.com/hellomyheart/go-indicator/trend"
+	"github.com/hellomyheart/go-indicator/indicator/trend"
 )
 
 //goland:noinspection GoUnnecessarilyExportedIdentifiers

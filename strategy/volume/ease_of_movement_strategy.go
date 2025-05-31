@@ -5,8 +5,8 @@ import (
 
 	"github.com/hellomyheart/go-indicator/asset"
 	"github.com/hellomyheart/go-indicator/helper"
+	"github.com/hellomyheart/go-indicator/indicator/volume"
 	"github.com/hellomyheart/go-indicator/strategy"
-	"github.com/hellomyheart/go-indicator/volume"
 )
 
 // EaseOfMovementStrategy represents the configuration parameters for calculating the Ease of Movement strategy.
