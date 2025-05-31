@@ -5,6 +5,7 @@ func First[T any](c <-chan T, count int) <-chan T {
 	result := make(chan T, cap(c))
 
 	go func() {
+		defer close(result)
 		for i := 0; i < count; i++ {
 			n, ok := <-c
 			if !ok {
@@ -13,9 +14,7 @@ func First[T any](c <-chan T, count int) <-chan T {
 
 			result <- n
 		}
-
-		close(result)
-
+		// 排空通道
 		Drain(c)
 	}()
 
