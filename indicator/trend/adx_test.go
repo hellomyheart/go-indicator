@@ -12,7 +12,7 @@ func TestAdx(t *testing.T) {
 		High  float64
 		Low   float64
 		Close float64
-		Atr   float64
+		Adx   float64
 	}
 
 	input, err := helper.ReadFromCsvFile[Data]("testdata/adx.csv", true)
@@ -24,12 +24,11 @@ func TestAdx(t *testing.T) {
 	highs := helper.Map(inputs[0], func(d *Data) float64 { return d.High })
 	lows := helper.Map(inputs[1], func(d *Data) float64 { return d.Low })
 	closings := helper.Map(inputs[2], func(d *Data) float64 { return d.Close })
-	expected := helper.Map(inputs[3], func(d *Data) float64 { return d.Atr })
+	expected := helper.Map(inputs[3], func(d *Data) float64 { return d.Adx })
 
 	adx := trend.NewAdx[float64]()
 	actual := adx.Compute(highs, lows, closings)
 	actual = helper.RoundDigits(actual, 2)
-
 
 	// expected = helper.Skip(expected, adx.IdlePeriod())
 

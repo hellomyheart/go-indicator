@@ -12,7 +12,7 @@ func TestTr(t *testing.T) {
 		High  float64
 		Low   float64
 		Close float64
-		Atr   float64
+		Tr    float64
 	}
 
 	input, err := helper.ReadFromCsvFile[Data]("testdata/tr.csv", true)
@@ -24,7 +24,7 @@ func TestTr(t *testing.T) {
 	highs := helper.Map(inputs[0], func(d *Data) float64 { return d.High })
 	lows := helper.Map(inputs[1], func(d *Data) float64 { return d.Low })
 	closings := helper.Map(inputs[2], func(d *Data) float64 { return d.Close })
-	expected := helper.Map(inputs[3], func(d *Data) float64 { return d.Atr })
+	expected := helper.Map(inputs[3], func(d *Data) float64 { return d.Tr })
 
 	tr := trend.NewTr[float64]()
 	actual := tr.Compute(highs, lows, closings)
