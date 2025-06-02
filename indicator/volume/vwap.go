@@ -6,12 +6,11 @@ import (
 )
 
 const (
-	// DefaultVwapPeriod is the default period for the VWAP.
+	// DefaultVwapPeriod 为VWAP的默认周期。
 	DefaultVwapPeriod = 14
 )
 
-// Vwap holds configuration parameters for calculating the Volume Weighted Average Price (VWAP). It provides the
-// average price the asset has traded.
+// Vwap保存用于计算成交量加权平均价格（Vwap）的配置参数。它提供了资产交易的平均价格。
 //
 //	VWAP = Sum(Closing * Volume) / Sum(Volume)
 //
@@ -24,36 +23,40 @@ type Vwap[T helper.Number] struct {
 	Sum *trend.MovingSum[T]
 }
 
-// NewVwap function initializes a new VWAP instance with the default parameters.
+// NewVwap 函数使用默认参数初始化新的VWAP实例。
 func NewVwap[T helper.Number]() *Vwap[T] {
 	return NewVwapWithPeriod[T](DefaultVwapPeriod)
 }
 
-// NewVwapWithPeriod function initializes a new VWAP instance with the given period.
+// NewVwapWithPeriod 函数用给定的周期初始化新的VWAP实例。
 func NewVwapWithPeriod[T helper.Number](period int) *Vwap[T] {
 	return &Vwap[T]{
 		Sum: trend.NewMovingSumWithPeriod[T](period),
 	}
 }
 
-// Compute function takes a channel of numbers and computes the VWAP.
+// Compute 函数接受一个数字通道并计算VWAP。
 func (v *Vwap[T]) Compute(closings, volumes <-chan T) <-chan T {
+	// 复制一个chan
 	volumesSplice := helper.Duplicate(volumes, 2)
 
+	// 除法
 	return helper.Divide(
+		// sum(close * volumes)
 		v.Sum.Compute(
 			helper.Multiply(
 				closings,
 				volumesSplice[0],
 			),
 		),
+		// sum(volumes)
 		v.Sum.Compute(
 			volumesSplice[1],
 		),
 	)
 }
 
-// IdlePeriod is the initial period that VWAP won't yield any results.
+// IdlePeriod 是VWAP不会产生任何结果的初始阶段。 周期数-1
 func (v *Vwap[T]) IdlePeriod() int {
 	return v.Sum.IdlePeriod()
 }

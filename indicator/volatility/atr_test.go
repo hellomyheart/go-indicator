@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/hellomyheart/go-indicator/helper"
-	"github.com/hellomyheart/go-indicator/volatility"
+	"github.com/hellomyheart/go-indicator/indicator/volatility"
 )
 
 func TestAtr(t *testing.T) {

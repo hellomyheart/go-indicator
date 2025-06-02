@@ -3,8 +3,8 @@ package volatility
 import (
 	"github.com/hellomyheart/go-indicator/asset"
 	"github.com/hellomyheart/go-indicator/helper"
+	"github.com/hellomyheart/go-indicator/indicator/volatility"
 	"github.com/hellomyheart/go-indicator/strategy"
-	"github.com/hellomyheart/go-indicator/volatility"
 )
 
 // BollingerBandsStrategy represents the configuration parameters for calculating the Bollinger Bands strategy.

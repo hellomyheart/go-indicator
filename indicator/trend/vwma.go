@@ -7,39 +7,46 @@ const (
 	DefaultVwmaPeriod = 20
 )
 
-// Vwma represents the configuration parameters for calculating the Volume Weighted Moving Average (VWMA)
-// It averages the price data with an emphasis on volume, meaning areas with higher volume will have a
-// greater weight.
+// Vwma 表示计算成交量加权移动平均线（VWMA）的配置参数。它对价格数据进行平均，强调成交量，这意味着成交量越大的区域将具有更大的权重。
 //
-//	VWMA = Sum(Price * Volume) / Sum(Volume)
+//	VWMA = Sum(价格 * 成交量) / Sum(成交量)
 type Vwma[T helper.Number] struct {
-	// Time period.
+	// 周期
 	Period int
 }
 
-// NewVwma function initializes a new VWMA instance with the default parameters.
+// NewVwma 使用默认参数初始化新的VWMA实例。
 func NewVwma[T helper.Number]() *Vwma[T] {
 	return &Vwma[T]{
 		Period: DefaultVwmaPeriod,
 	}
 }
 
-// Compute function takes a channel of numbers and computes the VWMA and the signal line.
+// Compute 函数接受一个数字通道并计算VWMA和信号线。
+// closing 价格chan
+// volume 成交量chan
 func (v *Vwma[T]) Compute(closing, volume <-chan T) <-chan T {
+	// 复制成交量chan
 	volumes := helper.Duplicate(volume, 2)
 
+	// 创建移动和
 	sum := NewMovingSum[T]()
+	// 设置移动和周期
 	sum.Period = v.Period
 
+	// 除法运算
 	return helper.Divide(
+		// 移动和
+		// 价格 * 成交量
 		sum.Compute(
 			helper.Multiply(closing, volumes[0]),
 		),
+		// 成交量
 		sum.Compute(volumes[1]),
 	)
 }
 
-// IdlePeriod is the initial period that VWMA won't yield any results.
+// IdlePeriod 是VWMA不会产生任何结果的初始阶段。 周期-1
 func (v *Vwma[T]) IdlePeriod() int {
 	return v.Period - 1
 }

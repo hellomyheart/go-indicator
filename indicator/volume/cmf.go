@@ -6,12 +6,11 @@ import (
 )
 
 const (
-	// DefaultCmfPeriod is the default period of CMF.
+	// DefaultCmfPeriod 为CMF的默认周期。
 	DefaultCmfPeriod = 20
 )
 
-// Cmf holds configuration parameters for calculating the Chaikin Money Flow (CMF). It measures the amount
-// of money flow volume over a given period.
+// Cmf 保存用于计算蔡金资金流量指数（Cmf）的配置参数。它衡量的是一定时期内的资金量。
 //
 //	MFM = ((Closing - Low) - (High - Closing)) / (High - Low)
 //	MFV = MFM * Volume

@@ -5,8 +5,8 @@ import (
 
 	"github.com/hellomyheart/go-indicator/asset"
 	"github.com/hellomyheart/go-indicator/helper"
+	"github.com/hellomyheart/go-indicator/indicator/volatility"
 	"github.com/hellomyheart/go-indicator/strategy"
-	"github.com/hellomyheart/go-indicator/volatility"
 )
 
 // SuperTrendStrategy represents the configuration parameters for calculating the Super Trend strategy. A closing

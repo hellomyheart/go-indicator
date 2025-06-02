@@ -7,30 +7,30 @@ import (
 )
 
 const (
-	// DefaultEmaPeriod is the default EMA period of 20.
+	// DefaultEmaPeriod 默认的均线周期为20。
 	DefaultEmaPeriod = 20
 
-	// DefaultEmaSmoothing is the default EMA smooting of 2.
+	// DefaultEmaSmoothing 默认均线平滑为2。
 	DefaultEmaSmoothing = 2
 )
 
-// Ema represents the parameters for calculating the Exponential Moving Average.
+// Ema 加权指数移动平均线的结构体
 //
-// Example:
+// 例子:
 //
 //	ema := trend.NewEma[float64]()
 //	ema.Period = 10
 //
 //	result := ema.Compute(c)
 type Ema[T helper.Number] struct {
-	// Time period.
+	// 周期
 	Period int
 
-	// Smoothing constant.
+	// 平滑系数
 	Smoothing T
 }
 
-// NewEma function initializes a new EMA instance with the default parameters.
+// NewEma 用默认参数初始化一个新的EMA实例。
 func NewEma[T helper.Number]() *Ema[T] {
 	return &Ema[T]{
 		Period:    DefaultEmaPeriod,
@@ -38,7 +38,7 @@ func NewEma[T helper.Number]() *Ema[T] {
 	}
 }
 
-// NewEmaWithPeriod function initializes a new EMA instance with the given period.
+// NewEmaWithPeriod 函数用给定的周期初始化新的EMA实例。
 func NewEmaWithPeriod[T helper.Number](period int) *Ema[T] {
 	ema := NewEma[T]()
 	ema.Period = period
@@ -46,37 +46,49 @@ func NewEmaWithPeriod[T helper.Number](period int) *Ema[T] {
 	return ema
 }
 
-// Compute function takes a channel of numbers and computes the EMA over the specified period.
+// Compute 函数接受一个数字通道并计算指定时间段内的EMA。
 func (e *Ema[T]) Compute(c <-chan T) <-chan T {
+	// 创建一个结果chan
 	result := make(chan T, cap(c))
 
+	// 启动一个协程
 	go func() {
+		// 最后关闭协程
 		defer close(result)
 
-		// Initial EMA value is the SMA.
+		// 初始化一个简单移动平均线
 		sma := NewSma[T]()
+		// 简单移动平均线的周期是 ema的周期
 		sma.Period = e.Period
 
+		// 取前周期数个元素 ，并计算简单移动平均线
 		before := <-sma.Compute(helper.Head(c, e.Period))
+		// 将结果返回
 		result <- before
 
+		// 权重乘数 = 平滑系数 / 周期+ 1
+		// 最新价格 权重乘数的 权重，
+		// 上一个EMA价格权重是 （1- 权重乘数）
 		multiplier := e.Smoothing / T(e.Period+1)
 
 		for n := range c {
+			// (当前值 - 上一个值) *  权重乘数 + 上一个值
 			before = (n-before)*multiplier + before
+			// 将结果返回
 			result <- before
 		}
 	}()
 
+	// 返回chan
 	return result
 }
 
-// IdlePeriod is the initial period that EMA yield any results.
+// IdlePeriod 是EMA产生任何结果的初始阶段。 返回周期-1
 func (e *Ema[T]) IdlePeriod() int {
 	return e.Period - 1
 }
 
-// String is the string representation of the EMA.
+// String 是EMA的字符串表示形式。
 func (e *Ema[T]) String() string {
 	return fmt.Sprintf("EMA(%d)", e.Period)
 }

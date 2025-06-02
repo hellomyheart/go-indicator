@@ -7,11 +7,11 @@ import (
 )
 
 const (
-	// DefaultSmaPeriod is the default SMA period.
+	// DefaultSmaPeriod 默认的SMA周期 50
 	DefaultSmaPeriod = 50
 )
 
-// Sma represents the parameters for calculating the Simple Moving Average.
+// Sma 表示计算简单移动平均线的参数。
 //
 // Example:
 //
@@ -24,34 +24,37 @@ type Sma[T helper.Number] struct {
 	Period int
 }
 
-// NewSma function initializes a new SMA instance with the default parameters.
+// NewSma 使用默认参数初始化一个新的SMA实例。
 func NewSma[T helper.Number]() *Sma[T] {
 	return NewSmaWithPeriod[T](DefaultSmaPeriod)
 }
 
-// NewSmaWithPeriod function initializes a new SMA instance with the default parameters.
+// NewSmaWithPeriod 使用自定义参数初始化一个新的SMA实例。
 func NewSmaWithPeriod[T helper.Number](period int) *Sma[T] {
 	return &Sma[T]{
 		Period: period,
 	}
 }
 
-// Compute function takes a channel of numbers and computes the SMA over the specified period.
+// Compute sma计算方法
 func (s *Sma[T]) Compute(c <-chan T) <-chan T {
+	// 移动和
 	sum := NewMovingSum[T]()
+	// 设置移动和周期为sma周期
 	sum.Period = s.Period
 
+	// sma =  移动和/周期
 	return helper.Apply(sum.Compute(c), func(sum T) T {
 		return sum / T(s.Period)
 	})
 }
 
-// IdlePeriod is the initial period that SMA won't yield any results.
+// IdlePeriod 是SMA不会产生任何结果的初始阶段。（周期值-1）
 func (s *Sma[T]) IdlePeriod() int {
 	return s.Period - 1
 }
 
-// String is the string representation of the SMA.
+// String 是SMA的字符串表示形式。
 func (s *Sma[T]) String() string {
 	return fmt.Sprintf("SMA(%d)", s.Period)
 }

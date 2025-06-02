@@ -20,8 +20,8 @@ package volatility
 
 import (
 	"github.com/hellomyheart/go-indicator/indicator/trend"
+	"github.com/hellomyheart/go-indicator/indicator/volatility"
 	"github.com/hellomyheart/go-indicator/strategy"
-	"github.com/hellomyheart/go-indicator/volatility"
 )
 
 // AllStrategies returns a slice containing references to all available volatility strategies.
