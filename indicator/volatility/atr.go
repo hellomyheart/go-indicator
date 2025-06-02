@@ -1,20 +1,16 @@
 package volatility
 
 import (
-	"math"
-
 	"github.com/hellomyheart/go-indicator/helper"
 	"github.com/hellomyheart/go-indicator/indicator/trend"
 )
 
 const (
-	// DefaultAtrPeriod is the default period for the Average True Range (ATR).
+	// DefaultAtrPeriod atr的默认周期
 	DefaultAtrPeriod = 14
 )
 
-// Atr represents the configuration parameters for calculating the Average True Range (ATR).
-// It is a technical analysis indicator that measures market volatility by decomposing the
-// entire range of stock prices for that period.
+// Atr 表示计算ATR （Average True Range）的配置参数。它是一种技术分析指标，通过分解该时期的整个股票价格范围来衡量市场波动性。
 //
 //	TR = Max((High - Low), (High - Previous Closing), (Previous Closing - Low))
 //	ATR = MA TR
@@ -49,16 +45,9 @@ func NewAtrWithMa[T helper.Number](ma trend.Ma[T]) *Atr[T] {
 
 // Compute function takes a channel of numbers and computes the ATR over the specified period.
 func (a *Atr[T]) Compute(highs, lows, closings <-chan T) <-chan T {
-	// Use previous closing by skipping highs and lows by one.
-	highs = helper.Skip(highs, 1)
-	lows = helper.Skip(lows, 1)
+	tr := NewTr[T]()
 
-	tr := helper.Operate3(highs, lows, closings, func(high, low, closing T) T {
-		return T(math.Max(float64(high-low), math.Max(float64(high-closing), float64(closing-low))))
-	})
-
-	atr := a.Ma.Compute(tr)
-
+	atr := a.Ma.Compute(tr.Compute(highs, lows, closings))
 	return atr
 }
 
