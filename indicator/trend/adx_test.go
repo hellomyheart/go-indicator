@@ -1,13 +1,13 @@
-package volatility_test
+package trend_test
 
 import (
 	"testing"
 
 	"github.com/hellomyheart/go-indicator/helper"
-	"github.com/hellomyheart/go-indicator/indicator/volatility"
+	"github.com/hellomyheart/go-indicator/indicator/trend"
 )
 
-func TestTr(t *testing.T) {
+func TestAdx(t *testing.T) {
 	type Data struct {
 		High  float64
 		Low   float64
@@ -15,7 +15,7 @@ func TestTr(t *testing.T) {
 		Atr   float64
 	}
 
-	input, err := helper.ReadFromCsvFile[Data]("testdata/tr.csv", true)
+	input, err := helper.ReadFromCsvFile[Data]("testdata/adx.csv", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,14 +26,15 @@ func TestTr(t *testing.T) {
 	closings := helper.Map(inputs[2], func(d *Data) float64 { return d.Close })
 	expected := helper.Map(inputs[3], func(d *Data) float64 { return d.Atr })
 
-	tr := volatility.NewTr[float64]()
-	actual := tr.Compute(highs, lows, closings)
+	adx := trend.NewAdx[float64]()
+	actual := adx.Compute(highs, lows, closings)
 	actual = helper.RoundDigits(actual, 2)
 
-	expected = helper.Skip(expected, tr.IdlePeriod())
+
+	// expected = helper.Skip(expected, adx.IdlePeriod())
 
 	err = helper.CheckEquals(actual, expected)
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
+	if err != nil {
+		t.Fatal(err)
+	}
 }

@@ -1,4 +1,4 @@
-package volatility
+package trend
 
 import (
 	"math"

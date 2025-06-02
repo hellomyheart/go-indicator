@@ -45,7 +45,7 @@ func NewAtrWithMa[T helper.Number](ma trend.Ma[T]) *Atr[T] {
 
 // Compute function takes a channel of numbers and computes the ATR over the specified period.
 func (a *Atr[T]) Compute(highs, lows, closings <-chan T) <-chan T {
-	tr := NewTr[T]()
+	tr := trend.NewTr[T]()
 
 	atr := a.Ma.Compute(tr.Compute(highs, lows, closings))
 	return atr
