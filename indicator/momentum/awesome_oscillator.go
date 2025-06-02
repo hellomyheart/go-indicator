@@ -24,14 +24,14 @@ const (
 //	ao := momentum.AwesomeOscillator[float64]()
 //	values := ao.Compute(lows, highs)
 type AwesomeOscillator[T helper.Number] struct {
-	// ShortSma is the SMA for the short period.
+	// 短周期sma
 	ShortSma *trend.Sma[T]
 
-	// LongSma is the SMA for the long period.
+	// 长周期sma
 	LongSma *trend.Sma[T]
 }
 
-// NewAwesomeOscillator function initializes a new Awesome Oscillator instance.
+// NewAwesomeOscillator 函数初始化一个新的Awesome振荡器实例。
 func NewAwesomeOscillator[T helper.Number]() *AwesomeOscillator[T] {
 	return &AwesomeOscillator[T]{
 		ShortSma: trend.NewSmaWithPeriod[T](DefaultAwesomeOscillatorShortPeriod),
@@ -39,9 +39,12 @@ func NewAwesomeOscillator[T helper.Number]() *AwesomeOscillator[T] {
 	}
 }
 
-// Compute function takes a channel of numbers and computes the AwesomeOscillator.
+// Compute 函数接受2个数字通道并计算AwesomeOscillator。
 func (a *AwesomeOscillator[T]) Compute(highs, lows <-chan T) <-chan T {
+	// 将一个chan复制为多个chan （2）
+	// 复制了两个平均价格
 	medianSplice := helper.Duplicate(
+		// 除法 (high s + lows)/2 求出平均价格
 		helper.DivideBy(
 			helper.Add(highs, lows),
 			2,
@@ -49,18 +52,29 @@ func (a *AwesomeOscillator[T]) Compute(highs, lows <-chan T) <-chan T {
 		2,
 	)
 
+	// 计算平均价格的 短均线
 	shortSma := a.ShortSma.Compute(medianSplice[0])
+	// 计算平均价格的 长均线
 	longSma := a.LongSma.Compute(medianSplice[1])
 
+	// 跳过短均线的前（长周期-1 -短周期-1）周期个数据
+	// 实现了数据对齐
+	// 例如：
+	// 短周期5 长周期34 33 -4 = 29
+	// 长周期在34才有数据，短周期在5
+	// 短周期跳过29个，数据就实现了对齐
 	shortSma = helper.Skip(shortSma, a.LongSma.IdlePeriod()-a.ShortSma.IdlePeriod())
 
+	// 返回 短均线减去长均线 的结果
+	// 这里的均线都是最高价格和最低价格的平均值的均线
 	return helper.Subtract(
 		shortSma,
 		longSma,
 	)
 }
 
-// IdlePeriod is the initial period that Awesome Oscillator won't yield any results.
+// IdlePeriod 是绝妙振荡器不会产生任何结果的初始周期。
 func (a *AwesomeOscillator[T]) IdlePeriod() int {
+	// 长周期sma的IdlePeriod
 	return a.LongSma.IdlePeriod()
 }
