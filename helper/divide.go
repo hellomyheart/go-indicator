@@ -10,8 +10,13 @@ package helper
 //	division := helper.Divide(ac, bc)
 //
 //	fmt.Println(helper.ChanToSlice(division)) // [1, 4, 2, 4, 2]
+
+// 特殊规定，如果b 为0 返回0
 func Divide[T Number](ac, bc <-chan T) <-chan T {
 	return Operate(ac, bc, func(a, b T) T {
+		if b == 0 {
+			return 0
+		}
 		return a / b
 	})
 }

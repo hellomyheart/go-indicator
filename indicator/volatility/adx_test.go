@@ -1,10 +1,10 @@
-package trend_test
+package volatility_test
 
 import (
 	"testing"
 
 	"github.com/hellomyheart/go-indicator/helper"
-	"github.com/hellomyheart/go-indicator/indicator/trend"
+	"github.com/hellomyheart/go-indicator/indicator/volatility"
 )
 
 func TestAdx(t *testing.T) {
@@ -26,11 +26,11 @@ func TestAdx(t *testing.T) {
 	closings := helper.Map(inputs[2], func(d *Data) float64 { return d.Close })
 	expected := helper.Map(inputs[3], func(d *Data) float64 { return d.Adx })
 
-	adx := trend.NewAdx[float64]()
+	adx := volatility.NewAdx[float64]()
 	actual := adx.Compute(highs, lows, closings)
 	actual = helper.RoundDigits(actual, 2)
 
-	// expected = helper.Skip(expected, adx.IdlePeriod())
+	expected = helper.Skip(expected, adx.IdlePeriod())
 
 	err = helper.CheckEquals(actual, expected)
 	if err != nil {

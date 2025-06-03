@@ -1,13 +1,16 @@
-package trend
+package volatility
 
 import (
 	"math"
 
 	"github.com/hellomyheart/go-indicator/helper"
+	"github.com/hellomyheart/go-indicator/indicator/trend"
 )
 
 // DefaultAdxPeriod 默认ADX周期参数
-const DefaultAdxPeriod = 14
+const (
+	DefaultAdxPeriod = 14
+)
 
 // Adx 表示计算平均趋向指数(Average Directional Index)的配置参数
 // ADX值越高表明趋势越强，通常高于25视为明显趋势
@@ -17,6 +20,8 @@ const DefaultAdxPeriod = 14
 // -DI = 100 * EMA(-DM)/EMA(TR)
 // DX = 100 * |+DI - -DI|/(+DI + -DI)
 // ADX = EMA(DX)
+
+// EMA(TR) 使用atr
 type Adx[T helper.Number] struct {
 	Period int // 计算周期，默认14
 }
@@ -43,38 +48,39 @@ func (adx *Adx[T]) Compute(high, low, close <-chan T) <-chan T {
 	lows := helper.Duplicate(low, 2)
 	closes := helper.Duplicate(close, 3)
 
-	// TR
-	tr := NewTr[T]()
-	trChan := tr.Compute(highs[0], lows[0], closes[0])
+	// TR 有结果的地方是1 + 一个周期 -1
+	// highs[0]、lows[0] 消费了 1
+	atr := NewAtrWithMa(trend.NewEmaWithPeriod[T](adx.Period))
+	atrChan := atr.Compute(highs[0], lows[0], closes[0])
+
 	// 复制两个TR
-	trsChan := helper.Duplicate(trChan, 2)
+	atrsChan := helper.Duplicate(atrChan, 2)
 
-	// +DM
-	highs[1] = helper.Skip(highs[1], 1)
-	dmPlusChan := helper.Operate(highs[1], closes[1], func(high, close T) T {
-		return T(math.Max(0, float64(high-close)))
-	})
+	// EMA(+DM) 有结果的地方是1 + 一个周期 -1
+	// highs[1] 消费了1
+	admPlus := NewAdmWithMa(trend.NewEmaWithPeriod[T](adx.Period), true)
+	admPlusChan := admPlus.Compute(highs[1], closes[1])
 
-	// -DM
-	lows[1] = helper.Skip(lows[1], 1)
-	dmMinusChan := helper.Operate(lows[1], closes[2], func(low, close T) T {
-		return T(math.Max(0, float64(close-low)))
-	})
+	// EMA(-DM) 有结果的地方是1+ 一个周期 -1
+	// lows[1] 消费了1
+	admMinus := NewAdmWithMa(trend.NewEmaWithPeriod[T](adx.Period), false)
+	admMinusChan := admMinus.Compute(closes[2], lows[1])
 
 	// +DI = 100 * EMA(+DM)/EMA(TR)
-	diPlusEma1 := NewEmaWithPeriod[T](adx.Period)
-	diPlusEma2 := NewEmaWithPeriod[T](adx.Period)
-	diPlusChan := helper.Divide(helper.MultiplyBy(diPlusEma1.Compute(dmPlusChan), 100),
-		diPlusEma2.Compute(trsChan[0]))
+	// 有结果的地方是 周期-1
+	diPlusChan := helper.MultiplyBy(helper.Divide(admPlusChan,
+		atrsChan[0]), 100)
+	diPlusChan = helper.Buffered(diPlusChan, adx.Period)
 
 	// -DI = 100 * EMA(-DM)/EMA(TR)
-	diMinusEma1 := NewEmaWithPeriod[T](adx.Period)
-	diMinusEma2 := NewEmaWithPeriod[T](adx.Period)
-	diMinusChan := helper.Divide(helper.MultiplyBy(diMinusEma1.Compute(dmMinusChan), 100),
-		diMinusEma2.Compute(trsChan[1]))
+	// 有结果的地方是 周期-1
+	diMinusChan := helper.MultiplyBy(helper.Divide(admMinusChan,
+		atrsChan[1]), 100)
+
+	diMinusChan = helper.Buffered(diMinusChan, adx.Period)
 
 	// EMA
-	ema := NewEmaWithPeriod[T](adx.Period)
+	ema := trend.NewEmaWithPeriod[T](adx.Period)
 
 	// ADX = EMA(DX)
 	// DX =100 * |+DI - -DI|/(+DI + -DI)
@@ -83,7 +89,7 @@ func (adx *Adx[T]) Compute(high, low, close <-chan T) <-chan T {
 	}))
 }
 
-// IdlePeriod 周期-1
+// IdlePeriod 2 * 周期-1
 func (a *Adx[T]) IdlePeriod() int {
-	return a.Period - 1
+	return 2*a.Period - 1
 }
