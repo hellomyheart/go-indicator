@@ -28,3 +28,5 @@ go.work
 # vscode
 .vscode
 
+# 历史记录
+.history
