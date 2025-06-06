@@ -97,7 +97,7 @@ func (s *Sar[T]) Compute(high, low, cl <-chan T) (<-chan indicator.TrendType, <-
 	results <- tempS
 
 	// 舍弃 clo[0]
-	helper.Skip(cl, 1)
+	_ = <-cl
 
 	// 设置af 为 step (默认0.02)
 	af := s.Acceleration
