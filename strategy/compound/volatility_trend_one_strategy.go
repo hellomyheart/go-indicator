@@ -50,9 +50,9 @@ import (
 
 const (
 	// 布林带宽度预警值 默认值
-	DefaultBollingerBandWidthStart = 0.005
-	// 默认周期 5
-	DefaultPeriod = 5
+	DefaultBollingerBandWidthStart = 0.009
+	// 默认周期 10
+	DefaultPeriod = 10
 )
 
 // 波动率趋势一号策略结构体
