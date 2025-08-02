@@ -37,16 +37,21 @@ type Strategy interface {
 	Report(snapshots <-chan *asset.Snapshot) *helper.Report
 }
 
-// ComputeWithOutcome uses the given strategy to processes the provided asset snapshots and
-// generates a stream of actionable recommendations and outcomes.
+// ComputeWithOutcome使用给定的策略来处理提供的资产快照，并生成一系列可操作的建议和结果。
+// 返回动作 和
 func ComputeWithOutcome(s Strategy, c <-chan *asset.Snapshot) (<-chan Action, <-chan float64) {
+	// 输入通道复制为2个
 	snapshots := helper.Duplicate(c, 2)
 
+	// 使用第一个输入通道获取计算动作 
+	// 并把计算动作复制为2个通道
 	actions := helper.Duplicate(s.Compute(snapshots[0]), 2)
+	// 使用第二个输入通道获取收盘价
 	closings := asset.SnapshotsAsClosings(snapshots[1])
 
+	// 使用收盘价和计算动作 获取预计收益通道
 	outcomes := Outcome(closings, actions[1])
-
+	// 返回计算动作和预计收益
 	return actions[0], outcomes
 }
 

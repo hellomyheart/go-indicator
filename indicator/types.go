@@ -1,5 +1,7 @@
 package indicator
 
+import "github.com/hellomyheart/go-indicator/helper"
+
 // 定义枚举类型
 type TrendType int
 
@@ -19,4 +21,15 @@ func (c TrendType) String() string {
 // 实现 int 接口
 func (c TrendType) Int() int {
 	return int(c)
+}
+
+func NewTrendType[T helper.Number](num T) TrendType {
+	if num == 0 {
+		return STABLE
+	} else if num < 0 {
+		return FALLING
+	} else {
+		return RISING
+
+	}
 }

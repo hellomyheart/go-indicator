@@ -19,7 +19,8 @@ func NewRing[T any](size int) *Ring[T] {
 	}
 }
 
-// 将指定的值插入到环中并返回老数据（老数据可能为nil）
+// 将指定的值插入到环中并返回老数据（老数据一般不可能为nil）
+// 默认情况下老数据如果不存在，则是0值
 // value that was previously stored at that index.
 func (r *Ring[T]) Put(t T) T {
 	// 缓冲区已满，则将begin索引向右移动一位

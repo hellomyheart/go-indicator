@@ -33,9 +33,8 @@ type Snapshot struct {
 	Volume float64
 }
 
-// SnapshotsAsDates extracts the date field from each snapshot in the provided
-// channel and returns a new channel containing only those date values.The
-// original snapshots channel can no longer be directly used afterward.
+// SnapshotsAsDates从提供的每个快照中提取日期字段通道并返回一个只包含这些日期值的新通道.
+// 原始快照通道无法直接使用。
 func SnapshotsAsDates(snapshots <-chan *Snapshot) <-chan time.Time {
 	return helper.Map(snapshots, func(snapshot *Snapshot) time.Time {
 		return snapshot.Date

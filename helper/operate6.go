@@ -1,12 +1,12 @@
 package helper
 
-// 四个chen通过函数生成一个chen的函数
+// 六个chen通过函数生成一个chen的函数
 // 例如：
 //	add := helper.Operate3(ac, bc, cc, func(a, b, c int) int {
 //	  return a + b + c
 //	})
-func Operate4[A any, B any, C any, D any, R any](ac <-chan A, bc <-chan B, cc <-chan C, dc <-chan D, o func(A, B, C, D) R) <-chan R {
-// 创建一个输出通道
+func Operate6[A any, B any, C any, D any, E any, F any, R any](ac <-chan A, bc <-chan B, cc <-chan C, dc <-chan D, ec <-chan E, fc <-chan F, o func(A, B, C, D, E, F) R) <-chan R {
+	// 创建一个输出通道
 	rc := make(chan R)
 
 	go func() {
@@ -33,9 +33,19 @@ func Operate4[A any, B any, C any, D any, R any](ac <-chan A, bc <-chan B, cc <-
 			if !ok {
 				break
 			}
+
+			en, ok := <-ec
+			if !ok {
+				break
+			}
+
+			fn, ok := <-fc
+			if !ok {
+				break
+			}
 			// 任意一个通道没有数据，就退出循环
 
-			rc <- o(an, bn, cn, dn)
+			rc <- o(an, bn, cn, dn, en, fn)
 		}
 
 		// 排空所有通道
@@ -43,6 +53,8 @@ func Operate4[A any, B any, C any, D any, R any](ac <-chan A, bc <-chan B, cc <-
 		Drain(bc)
 		Drain(cc)
 		Drain(dc)
+		Drain(ec)
+		Drain(fc)
 	}()
 
 	return rc
