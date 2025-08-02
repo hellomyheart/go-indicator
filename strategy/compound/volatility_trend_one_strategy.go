@@ -2,7 +2,6 @@ package compound
 
 import (
 	"fmt"
-	"math"
 
 	"github.com/hellomyheart/go-indicator/asset"
 	"github.com/hellomyheart/go-indicator/helper"
@@ -13,6 +12,10 @@ import (
 )
 
 // 波动率趋势一号策略
+
+// 布林带宽度入场
+//  斜率方向和sar方向相同，二次入场判断
+// sar 适合用来做止损
 
 // 后面还要写 前置策略( 策略执行前有一个前置条件判断)、 延时等待策略（策略信号连续发出多少次后才OK）
 
@@ -48,16 +51,9 @@ import (
 const (
 
 	// 布林带宽度预警值 默认值
-	DefaultBollingerBandWidthStart = 0.2
-	// 布林带宽度安全值 默认值
-	DefaultBollingerBandWidthEnd = 0.1
-
-	// 布林带中轨斜率预警值 默认值
-	DefaultBollingerBandWidthSlopeStart = 0.05
-	// 布林带中轨斜率安全值 默认值
-	DefaultBollingerBandWidthSlopeEnd = 0.01
-	// 默认周期
-	DefaultPeriod = 20
+	DefaultBollingerBandWidthStart = 0.005
+	// 默认周期 5
+	DefaultPeriod = 5
 )
 
 // 波动率趋势一号策略结构体
@@ -74,41 +70,29 @@ type VolatilityTrendOneStrategy struct {
 	Period int
 	// 布林带宽度预警值
 	BollingerBandWidthStart float64
-	// 布林带宽度安全值
-	BollingerBandWidthEnd float64
-	// 布林带中轨斜率预警值
-	BollingerBandWidthSlopeStart float64
-	// 布林带中轨斜率安全值
-	BollingerBandWidthSlopeEnd float64
 }
 
 // 获取策略 使用默认参数
 func NewVolatilityTrendOneStrategy() *VolatilityTrendOneStrategy {
-	return NewVolatilityTrendOneStrategyWith(DefaultPeriod, DefaultBollingerBandWidthStart, DefaultBollingerBandWidthEnd, DefaultBollingerBandWidthSlopeStart, DefaultBollingerBandWidthSlopeEnd)
+	return NewVolatilityTrendOneStrategyWith(DefaultPeriod, DefaultBollingerBandWidthStart)
 }
 
 // 获取策略
-func NewVolatilityTrendOneStrategyWith(peroid int, BollingerBandWidthStart, BollingerBandWidthEnd, BollingerBandWidthSlopeStart, BollingerBandWidthSlopeEnd float64) *VolatilityTrendOneStrategy {
+func NewVolatilityTrendOneStrategyWith(peroid int, BollingerBandWidthStart float64) *VolatilityTrendOneStrategy {
 
 	return &VolatilityTrendOneStrategy{
-		BollingerBands:               volatility.NewBollingerBandsWithPeriod[float64](peroid),
-		BollingerBandWidth:           volatility.NewBollingerBandWidthWithPeriod[float64](peroid),
-		Sar:                          trend.NewSar[float64](),
-		Period:                       peroid,
-		BollingerBandWidthStart:      BollingerBandWidthStart,
-		BollingerBandWidthEnd:        BollingerBandWidthEnd,
-		BollingerBandWidthSlopeStart: BollingerBandWidthSlopeStart,
-		BollingerBandWidthSlopeEnd:   BollingerBandWidthSlopeEnd,
+		BollingerBands:          volatility.NewBollingerBandsWithPeriod[float64](peroid),
+		BollingerBandWidth:      volatility.NewBollingerBandWidthWithPeriod[float64](peroid),
+		Sar:                     trend.NewSar[float64](),
+		Period:                  peroid,
+		BollingerBandWidthStart: BollingerBandWidthStart,
 	}
 }
 
 func (v *VolatilityTrendOneStrategy) Name() string {
-	return fmt.Sprintf("Volatility-Trend-One Strategy (%d, %.0f, %.0f, %.0f, %.0f)",
+	return fmt.Sprintf("Volatility-Trend-One Strategy (%d, %.0f)",
 		v.Period,
 		v.BollingerBandWidthStart,
-		v.BollingerBandWidthEnd,
-		v.BollingerBandWidthSlopeStart,
-		v.BollingerBandWidthSlopeEnd,
 	)
 
 }
@@ -152,8 +136,15 @@ func (m *VolatilityTrendOneStrategy) Compute(snapshots <-chan *asset.Snapshot) <
 	lastAction := strategy.Hold
 	// 上一个中轨值
 	lastMiddle := 0.0
+	// 上一个sar 方向
+	lastTrendType := indicator.STABLE
 	// 计算
 	actions := helper.Operate6(upperChan, middleChan, lowerChan, widthChan, TrendTypeChan, sarChan, func(upper, middle, lower, width float64, TrendType indicator.TrendType, sar float64) strategy.Action {
+		// 提前计算斜率
+		tempSlope := 0.0
+		if 0 != lastMiddle {
+			tempSlope = (middle - lastMiddle) / lastMiddle
+		}
 		switch lastAction {
 		case strategy.Hold:
 			// 未触发动作，需要寻找入场时机
@@ -162,15 +153,7 @@ func (m *VolatilityTrendOneStrategy) Compute(snapshots <-chan *asset.Snapshot) <
 			if width <= m.BollingerBandWidthStart {
 				// 更新上一个中轨值
 				lastMiddle = middle
-				return strategy.Hold
-			}
-			// 2. 计算斜率
-			// 斜率小于等于预警值
-			tempSlope := (middle - lastMiddle) / lastMiddle
-
-			if math.Abs(tempSlope) <= m.BollingerBandWidthSlopeStart {
-				// 更新上一个中轨值
-				lastMiddle = middle
+				lastTrendType = TrendType
 				return strategy.Hold
 			}
 			// 更新 lastMiddle
@@ -179,6 +162,7 @@ func (m *VolatilityTrendOneStrategy) Compute(snapshots <-chan *asset.Snapshot) <
 			if slopeTrendType != TrendType {
 				// 更新上一个中轨值
 				lastMiddle = middle
+				lastTrendType = TrendType
 				return strategy.Hold
 			}
 			// 4.符合条件
@@ -190,132 +174,65 @@ func (m *VolatilityTrendOneStrategy) Compute(snapshots <-chan *asset.Snapshot) <
 				lastAction = strategy.Sell
 				// 更新上一个中轨值
 				lastMiddle = middle
+				lastTrendType = TrendType
 				return strategy.Sell
 			case indicator.STABLE:
 				// 平衡趋势
 				// 更新上一个中轨值
 				lastMiddle = middle
+				lastTrendType = TrendType
 				return strategy.Hold
 			case indicator.RISING:
 				// 上升趋势  indicator.RISING:
 				// 更新上一个中轨值
 				lastMiddle = middle
 				lastAction = strategy.Buy
+				lastTrendType = TrendType
 				return strategy.Buy
 			default:
 				// 更新上一个中轨值
 				lastMiddle = middle
+				lastTrendType = TrendType
 				return strategy.Hold
 			}
 		case strategy.Buy:
 			// 已经买入
-			// 维持 或者卖出
-			// 1. 判断宽度是否小于安全值
-			if width <= m.BollingerBandWidthEnd {
-				// 更新上一个中轨值
-				lastMiddle = middle
-				lastAction = strategy.Hold
-				return strategy.Sell
-			}
-			// 2.计算斜率
-			tempSlope := (middle - lastMiddle) / lastMiddle
-
-			// 斜率小于等于预警值
-			if math.Abs(tempSlope) <= m.BollingerBandWidthSlopeEnd {
-				// 更新上一个中轨值
-				lastMiddle = middle
-				lastAction = strategy.Hold
-				return strategy.Sell
-			}
-			// 3. 判断斜率方向和sar方向
-			slopeTrendType := indicator.NewTrendType(tempSlope)
-			if slopeTrendType != TrendType {
-				// 更新上一个中轨值
-				lastMiddle = middle
-				lastAction = strategy.Hold
-				return strategy.Sell
-			}
-			// 4.符合条件
-			// 判断中轨方向
-			switch slopeTrendType {
-			case indicator.FALLING:
+			// 做止损判断
+			if lastTrendType != TrendType {
+				// 方向改变
 				//  上升变下降趋势
 				// 更新上一个中轨值
 				lastMiddle = middle
 				lastAction = strategy.Hold
+				lastTrendType = TrendType
 				return strategy.Sell
-			case indicator.STABLE:
-				// 上升变平衡趋势
-				// 更新上一个中轨值
-				lastMiddle = middle
-				lastAction = strategy.Hold
-				return strategy.Sell
-			case indicator.RISING:
+			} else {
+				// 方向未改变
 				// 上升趋势  indicator.RISING:
 				// 更新上一个中轨值
 				lastMiddle = middle
 				lastAction = strategy.Buy
 				return strategy.Buy
-			default:
-				// 更新上一个中轨值
-				lastMiddle = middle
-				lastAction = strategy.Hold
-				return strategy.Sell
 			}
 		case strategy.Sell:
 			// 已经卖出
 			// 维持 或者买入
-			// 1. 判断宽度是否小于安全值
-			if width <= m.BollingerBandWidthEnd {
-				// 更新上一个中轨值
-				lastMiddle = middle
-				lastAction = strategy.Hold
-				return strategy.Buy
-			}
-			// 2.计算斜率
-			tempSlope := (middle - lastMiddle) / lastMiddle
-
-			// 斜率小于等于预警值
-			if math.Abs(tempSlope) <= m.BollingerBandWidthSlopeEnd {
-				// 更新上一个中轨值
-				lastMiddle = middle
-				lastAction = strategy.Hold
-				return strategy.Buy
-			}
-			// 3. 判断斜率方向和sar方向
-			slopeTrendType := indicator.NewTrendType(tempSlope)
-			if slopeTrendType != TrendType {
-				// 更新上一个中轨值
-				lastMiddle = middle
-				lastAction = strategy.Hold
-				return strategy.Buy
-			}
-			// 4.符合条件
-			// 判断中轨方向
-			switch slopeTrendType {
-			case indicator.RISING:
+			// 已经买入
+			// 做止损判断
+			if lastTrendType != TrendType {
 				// 下降变上升
 				// 更新上一个中轨值
 				lastMiddle = middle
 				lastAction = strategy.Hold
+				lastTrendType = TrendType
 				return strategy.Buy
-			case indicator.STABLE:
-				// 上升变平衡趋势
-				// 更新上一个中轨值
-				lastMiddle = middle
-				lastAction = strategy.Hold
-				return strategy.Buy
-			case indicator.FALLING:
+			} else {
+				// 方向未改变
 				// 下降趋势
 				// 更新上一个中轨值
 				lastMiddle = middle
 				lastAction = strategy.Sell
 				return strategy.Sell
-			default:
-				// 更新上一个中轨值
-				lastMiddle = middle
-				lastAction = strategy.Hold
-				return strategy.Buy
 			}
 		default:
 			return strategy.Hold

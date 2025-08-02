@@ -30,13 +30,9 @@ func TestVolatilityTrendOneStrategy(t *testing.T) {
 
 	actual = helper.Shift(actual, volatilityTrend.IdlePeriod(), strategy.Hold)
 
-	i := 0
 	for item := range actual {
-		i++
-
 		fmt.Println(item.Annotation())
 	}
-	fmt.Println(i)
 
 	// 检查结果
 	// err = helper.CheckEquals(actual, expected)
@@ -46,7 +42,7 @@ func TestVolatilityTrendOneStrategy(t *testing.T) {
 }
 
 func TestVolatilityTrendOneStrategyReport(t *testing.T) {
-	snapshots, err := helper.ReadFromCsvFile[asset.Snapshot]("testdata/brk-b.csv", true)
+	snapshots, err := helper.ReadFromCsvFile[asset.Snapshot]("testdata/SA2509.csv", true)
 	if err != nil {
 		t.Fatal(err)
 	}
