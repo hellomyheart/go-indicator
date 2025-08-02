@@ -49,7 +49,6 @@ import (
 //  		   布林带中轨 斜率预警值  斜率安全值
 
 const (
-
 	// 布林带宽度预警值 默认值
 	DefaultBollingerBandWidthStart = 0.005
 	// 默认周期 5
