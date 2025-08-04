@@ -66,6 +66,7 @@ func TestVolatilityTrendOneStrategyOutComes(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	
 	volatilityTrendOne := compound.NewVolatilityTrendOneStrategy()
 
 	snapshots := helper.Duplicate(snapshot, 2)
