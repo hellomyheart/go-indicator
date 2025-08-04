@@ -222,6 +222,7 @@ func (m *VolatilityTrendOneStrategy) Compute(snapshots <-chan *asset.Snapshot) <
 			return strategy.Hold
 		}
 	})
+	actions = helper.Shift(actions, m.IdlePeriod(), strategy.Hold)
 	return actions
 }
 
