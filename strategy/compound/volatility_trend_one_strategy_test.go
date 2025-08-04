@@ -61,7 +61,7 @@ func TestVolatilityTrendOneStrategyReport(t *testing.T) {
 }
 
 func TestVolatilityTrendOneStrategyOutComes(t *testing.T) {
-	snapshot, err := helper.ReadFromCsvFile[asset.Snapshot]("testdata/SA2509.csv", true)
+	snapshot, err := helper.ReadFromCsvFile[asset.Snapshot]("testdata/AG2510.csv", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,10 +75,28 @@ func TestVolatilityTrendOneStrategyOutComes(t *testing.T) {
 	asset := helper.Skip(snapshots[1], volatilityTrendOne.IdlePeriod())
 
 	for i := 0; i < 3000; i++ {
-		a := <-action
+		a, ok := <-action
+		if !ok {
+			return
+		}
 		v := <-asset
-		fmt.Print(a.Annotation() + "  ")
-		fmt.Println(v.Close)
+		fmt.Print(changeAction(a).Annotation(), "  ")
+		fmt.Print(v.Close, "   ")
+		fmt.Println(v.Date)
 	}
+}
 
+// 反向
+func changeAction(action strategy.Action) strategy.Action {
+	// switch action {
+	// case strategy.Buy:
+	// 	return strategy.Sell
+
+	// case strategy.Sell:
+	// 	return strategy.Buy
+
+	// default:
+	// 	return strategy.Hold
+	// }
+	return action
 }

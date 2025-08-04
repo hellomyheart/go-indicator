@@ -9,7 +9,7 @@ import (
 // Snapshot captures a single observation of an asset's price
 // at a specific moment.
 type Snapshot struct {
-	// Date represents the specific timestamp.
+	// Date represents the specific timestamp.  15:04:05
 	Date time.Time `format:"2006-01-02"`
 
 	// Open represents the opening price for the
