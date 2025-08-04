@@ -11,6 +11,10 @@ import (
 )
 
 // 波动率趋势一号策略
+// ADX 判断是否是趋势， 趋势入场
+// 斜率判断方向， 这两个都很好
+
+// 止损有问题，斜率判断，延迟很大
 
 // ADX 判断是否是趋势
 // 布林带 主要使用中轨， 判断斜率
@@ -57,7 +61,7 @@ const (
 	// // 默认斜率预警值
 	// DefaultSlopeStart = 0.0002
 	// 默认周期 20
-	DefaultPeriod = 15
+	DefaultPeriod = 16
 )
 
 // 波动率趋势一号策略结构体
@@ -155,7 +159,7 @@ func (m *VolatilityTrendOneStrategy) Compute(snapshots <-chan *asset.Snapshot) <
 		case strategy.Hold:
 			// 未触发动作，需要寻找入场时机
 			// 判断adx 大小
-			if adx <= 25 {
+			if adx <= 30 {
 				// 更新上一个中轨值
 				lastMiddle = middle
 				lastTrendType = slopeTrendType

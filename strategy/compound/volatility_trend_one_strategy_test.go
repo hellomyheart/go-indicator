@@ -42,7 +42,7 @@ func TestVolatilityTrendOneStrategy(t *testing.T) {
 }
 
 func TestVolatilityTrendOneStrategyReport(t *testing.T) {
-	snapshots, err := helper.ReadFromCsvFile[asset.Snapshot]("testdata/SA2509.csv", true)
+	snapshots, err := helper.ReadFromCsvFile[asset.Snapshot]("testdata/AG2510-5.csv", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,7 +61,7 @@ func TestVolatilityTrendOneStrategyReport(t *testing.T) {
 }
 
 func TestVolatilityTrendOneStrategyOutComes(t *testing.T) {
-	snapshot, err := helper.ReadFromCsvFile[asset.Snapshot]("testdata/AG2510.csv", true)
+	snapshot, err := helper.ReadFromCsvFile[asset.Snapshot]("testdata/AG2510-5.csv", true)
 	if err != nil {
 		t.Fatal(err)
 	}
