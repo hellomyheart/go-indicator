@@ -6,8 +6,10 @@ import (
 	"github.com/hellomyheart/go-indicator/asset"
 	"github.com/hellomyheart/go-indicator/helper"
 	"github.com/hellomyheart/go-indicator/indicator"
+	"github.com/hellomyheart/go-indicator/indicator/trend"
 	"github.com/hellomyheart/go-indicator/indicator/volatility"
 	"github.com/hellomyheart/go-indicator/strategy"
+	strend "github.com/hellomyheart/go-indicator/strategy/trend"
 )
 
 // 波动率趋势一号策略
@@ -15,6 +17,9 @@ import (
 // 斜率判断方向， 这两个都很好
 
 // 止损有问题，斜率判断，延迟很大
+
+// sar 的缺点， 假的方向，
+// 除了趋势，还有震荡，在震荡中，sar的方向判断延迟很大，效果非常差
 
 // ADX 判断是否是趋势
 // 布林带 主要使用中轨， 判断斜率
@@ -61,7 +66,7 @@ const (
 	// // 默认斜率预警值
 	// DefaultSlopeStart = 0.0002
 	// 默认周期 20
-	DefaultPeriod = 16
+	DefaultPeriod = 30
 )
 
 // 波动率趋势一号策略结构体
@@ -70,8 +75,6 @@ type VolatilityTrendOneStrategy struct {
 
 	// // 布林带宽度
 	// BollingerBandWidth *volatility.BollingerBandWidth[float64]
-	// // sar
-	// Sar *trend.Sar[float64]
 
 	// // 布林带宽度预警值
 	// BollingerBandWidthStart float64
@@ -85,6 +88,11 @@ type VolatilityTrendOneStrategy struct {
 
 	// // BollingerBands表示计算布林带的配置参数。
 	BollingerBands *volatility.BollingerBands[float64]
+
+	// sar
+	Sar *trend.Sar[float64]
+	// macd策略
+	MacdStrategy *strend.MacdStrategy
 }
 
 // 获取策略 使用默认参数
@@ -98,12 +106,14 @@ func NewVolatilityTrendOneStrategyWith(peroid int) *VolatilityTrendOneStrategy {
 	return &VolatilityTrendOneStrategy{
 
 		// BollingerBandWidth:      volatility.NewBollingerBandWidthWithPeriod[float64](peroid),
-		// Sar:                     trend.NewSarWithParams[float64](0.5, 2),
+
 		// BollingerBandWidthStart: BollingerBandWidthStart,
 		// SlopeStart:              SlopeStart,
 		Period:         peroid,
 		Adx:            volatility.NewAdxWithPeriod[float64](peroid),
 		BollingerBands: volatility.NewBollingerBandsWithPeriod[float64](peroid),
+		Sar:            trend.NewSar[float64](),
+		MacdStrategy:   strend.NewMacdStrategy(),
 	}
 }
 
@@ -122,22 +132,30 @@ func (m *VolatilityTrendOneStrategy) Compute(snapshots <-chan *asset.Snapshot) <
 	// closings[0]  计算布林带
 	// closings[1]  计算布林带宽度
 
-	snapshots2 := helper.Duplicate(snapshots, 4)
+	snapshots2 := helper.Duplicate(snapshots, 5)
 
 	closings := asset.SnapshotsAsClosings(snapshots2[0])
 
-	highsShots := asset.SnapshotsAsHighs(snapshots2[1])
-	lowShots := asset.SnapshotsAsLows(snapshots2[2])
-	closeShots := asset.SnapshotsAsClosings(snapshots2[3])
+	highsShots := helper.Duplicate(asset.SnapshotsAsHighs(snapshots2[1]), 2)
+	lowShots := helper.Duplicate(asset.SnapshotsAsLows(snapshots2[2]), 2)
+	closeShots := helper.Duplicate(asset.SnapshotsAsClosings(snapshots2[3]), 2)
 	// 布林带指标计算
 	upperChan, middleChan, lowerChan := m.BollingerBands.Compute(closings)
 	// adx 计算
-	adxChan := m.Adx.Compute(highsShots, lowShots, closeShots)
+	adxChan := m.Adx.Compute(highsShots[0], lowShots[0], closeShots[0])
 
+	// sar 计算
+	trendTypeChan, sarChan := m.Sar.Compute(highsShots[1], lowShots[1], closeShots[1])
+
+	trendTypeChan = helper.Skip(trendTypeChan, m.BollingerBands.IdlePeriod())
+	sarChan = helper.Skip(sarChan, m.BollingerBands.IdlePeriod())
 	// adx 的 周期会长
 	diff := m.Adx.IdlePeriod() - m.BollingerBands.IdlePeriod()
 
 	adxChan = helper.Shift(adxChan, diff, 0.0)
+
+	// macd 计算
+	macdActionChan := m.MacdStrategy.Compute(snapshots2[4])
 
 	// 上一个动作
 	lastAction := strategy.Hold
@@ -148,7 +166,7 @@ func (m *VolatilityTrendOneStrategy) Compute(snapshots <-chan *asset.Snapshot) <
 	// 计算
 	// 布林带 3个 + adx = 4个
 
-	actions := helper.Operate4(upperChan, middleChan, lowerChan, adxChan, func(upper, middle, lower, adx float64) strategy.Action {
+	actions := helper.Operate7(upperChan, middleChan, lowerChan, adxChan, sarChan, trendTypeChan, macdActionChan, func(upper, middle, lower, adx, sar float64, trendType indicator.TrendType, macdAction strategy.Action) strategy.Action {
 		// 提前计算斜率
 		tempSlope := 0.0
 		if 0 != lastMiddle {
@@ -159,17 +177,31 @@ func (m *VolatilityTrendOneStrategy) Compute(snapshots <-chan *asset.Snapshot) <
 		case strategy.Hold:
 			// 未触发动作，需要寻找入场时机
 			// 判断adx 大小
-			if adx <= 30 {
+			if adx <= 25 {
 				// 更新上一个中轨值
 				lastMiddle = middle
 				lastTrendType = slopeTrendType
 				return strategy.Hold
 			}
+			// 斜率方向和sar 方向相同
+			if slopeTrendType != trendType {
+				lastMiddle = middle
+				lastTrendType = slopeTrendType
+				return strategy.Hold
+			}
+
 			if slopeTrendType == indicator.STABLE {
 				lastMiddle = middle
 				lastTrendType = slopeTrendType
 				return strategy.Hold
 			}
+			// macd 方向和斜率方向不同
+			if int(macdAction) != int(slopeTrendType) {
+				lastMiddle = middle
+				lastTrendType = slopeTrendType
+				return strategy.Hold
+			}
+
 			if slopeTrendType == indicator.FALLING {
 				// 下降趋势
 				// 卖
@@ -179,7 +211,7 @@ func (m *VolatilityTrendOneStrategy) Compute(snapshots <-chan *asset.Snapshot) <
 				lastTrendType = slopeTrendType
 				return strategy.Sell
 			} else {
-				// 下降趋势
+				// 上升趋势
 				// 买
 				lastAction = strategy.Buy
 				// 更新上一个中轨值
@@ -189,36 +221,36 @@ func (m *VolatilityTrendOneStrategy) Compute(snapshots <-chan *asset.Snapshot) <
 			}
 		case strategy.Buy:
 			// 已经买入
-			// 判断斜率是否已经改变
-			if slopeTrendType == lastTrendType {
+			// 判断sar方向是否已经改变
+			if trendType == lastTrendType {
 				// 没有改变
 				lastAction = strategy.Buy
 				// 更新上一个中轨值
 				lastMiddle = middle
-				lastTrendType = slopeTrendType
+				lastTrendType = trendType
 				return strategy.Hold
 			} else {
 				lastAction = strategy.Hold
 				// 更新上一个中轨值
 				lastMiddle = middle
-				lastTrendType = slopeTrendType
+				lastTrendType = trendType
 				return strategy.Sell
 			}
 		case strategy.Sell:
 			// 已经买入
-			// 判断斜率是否已经改变
-			if slopeTrendType == lastTrendType {
+			// 判断sar方向是否已经改变
+			if trendType == lastTrendType {
 				// 没有改变
 				lastAction = strategy.Sell
 				// 更新上一个中轨值
 				lastMiddle = middle
-				lastTrendType = slopeTrendType
+				lastTrendType = trendType
 				return strategy.Hold
 			} else {
 				lastAction = strategy.Hold
 				// 更新上一个中轨值
 				lastMiddle = middle
-				lastTrendType = slopeTrendType
+				lastTrendType = trendType
 				return strategy.Buy
 			}
 

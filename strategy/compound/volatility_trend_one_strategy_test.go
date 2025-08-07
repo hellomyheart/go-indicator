@@ -61,28 +61,42 @@ func TestVolatilityTrendOneStrategyReport(t *testing.T) {
 }
 
 func TestVolatilityTrendOneStrategyOutComes(t *testing.T) {
-	snapshot, err := helper.ReadFromCsvFile[asset.Snapshot]("testdata/AG2510-5.csv", true)
+	// 读取数据
+	snapshot, err := helper.ReadFromCsvFile[asset.Snapshot]("testdata/lc2511-60.csv", true)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	// 创建策略
 	volatilityTrendOne := compound.NewVolatilityTrendOneStrategy()
 
-	snapshots := helper.Duplicate(snapshot, 2)
+	// 源数据复制3份
+	snapshots := helper.Duplicate(snapshot, 3)
 
-	action := volatilityTrendOne.Compute(snapshots[0])
+	action := helper.Duplicate(volatilityTrendOne.Compute(snapshots[0]), 2)
 
-	asset := snapshots[1]
+	asset := asset.SnapshotsAsClosings(snapshots[1])
 
-	for i := 0; i < 3000; i++ {
-		a, ok := <-action
+	outcomes := strategy.Outcome(asset, action[1])
+
+	// for o := range outcomes {
+	// 	fmt.Println(o)
+	// }
+
+	for i := 0; i < 3000000; i++ {
+		a, ok := <-action[0]
+		o, ok := <-outcomes
 		if !ok {
 			return
 		}
-		v := <-asset
+		v := <-snapshots[2]
+		if a.Annotation() == "" {
+			continue
+		}
 		fmt.Print(changeAction(a).Annotation(), "  ")
 		fmt.Print(v.Close, "   ")
 		fmt.Println(v.Date)
+		fmt.Println(o)
 	}
 }
 
