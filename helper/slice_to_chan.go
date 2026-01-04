@@ -12,15 +12,20 @@ package helper
 //	fmt.Println(<- c)  // 6
 //	fmt.Println(<- c)  // 8
 func SliceToChan[T any](slice []T) <-chan T {
+	// 创建一个通道
 	c := make(chan T)
 
+	// 启动一个协程，将切片中的元素写入通道
 	go func() {
+		// 在协程结束时关闭通道
 		defer close(c)
 
+		// 将切片中的元素写入通道
 		for _, n := range slice {
 			c <- n
 		}
 	}()
 
+	// 返回通道
 	return c
 }
